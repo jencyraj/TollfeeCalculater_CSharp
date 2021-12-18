@@ -10,7 +10,7 @@ namespace TollCalculater.Hourfee
     public interface IHourfee
     {
 
-        int GetHourlyFee(DateTime dateTime, Vehicle vehicle);
+        int GetHourlyTollFee(DateTime dateTime, Vehicle vehicle);
 
     }
 }
