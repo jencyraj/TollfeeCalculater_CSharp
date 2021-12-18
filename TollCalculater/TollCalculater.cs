@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using TollCalculater.VehicleList;
+using TollCalculater.Hourfee;
 namespace TollCalculater
 {
     public static class TollCalculater
@@ -19,130 +20,130 @@ namespace TollCalculater
    * @param dates   - date and time of all passes on one day
    * @return - the total toll fee for that day
    */
-        public static int GetTollFee(CVehicle vehicle, DateTime[] dates)
+        private readonly IHourfee hourfee;
+        // Maxtollperday 60 SEK
+        const int max_tollfee = 60;
+        public  int GetTollFee(Vehicle vehicle, DateTime[] dates)
         {
-            if (vehicle.TollFree())
+            if (dates == null || dates.Length == 0)
             {
-                return 0;
+                throw new ArgumentException("!!oops No dates find");
             }
-            Array.Sort(dates);
-            var total_tollfee = 0;
-            var total_tollfeeDay = 0;
-            var highest_tollfee = 0;
-            var intervalStart = dates[0];
-            //var date = 0;
-            foreach (var date in dates)
+
+            if (vehicle == null)
             {
-                if (date.Date != intervalStart.Date)
+                throw new ArgumentNullException(nameof(vehicle));
+            }
+
+            if (!IsDuplicateDate(dates))
+            {
+                throw new ArgumentException("OOps!!Accept: Only  one date ");
+            }
+
+            //Delete lessthan Hour datetimes
+            DateTime intervalStart = dates[0];
+            int totalFee = GetTollFee(intervalStart, vehicle);
+            foreach (DateTime date in dates)
+            {
+                int nextFee = GetTollFee(date, vehicle);
+                //int tempFee = GetTollFee(intervalStart, vehicle);
+
+                //long diffInMillies = date.Millisecond - intervalStart.Millisecond;
+                long minutes = (date.Hour - intervalStart.Hour) * 60 + date.Minute - intervalStart.Minute;
+
+                if (minutes <= 60)
                 {
-                    total_tollfee = total_tollfeeDay + 1;
-                    total_tollfeeDay = 0;
-                }
-                var toll_fee = GetTollFee(date);
-                if (date < intervalStart.AddHours(1))
-                {
-                    if (toll_fee > highest_tollfee) { highest_tollfee = toll_fee; }
+                    continue;
                 }
                 else
                 {
+                    totalFee += nextFee;
                     intervalStart = date;
-                    total_tollfeeDay += highest_tollfee + toll_fee;
-                    if (total_tollfeeDay > 60) { total_tollfeeDay = 60; }
-                    highest_tollfee = 0;
                 }
+                if(max_tollfee <= totalFee) { return max_tollfee; }
 
             }
-            if (highest_tollfee > 0) { total_tollfeeDay = highest_tollfee; }
-
-            return total_tollfee + total_tollfeeDay;
-
+            //if (totalFee > 60) totalFee = 60;
+            return totalFee;
         }
-
-        private static int GetTollFee(DateTime date)
+        private int GetTollFee(DateTime date, Vehicle vehicle)
         {
-            if (IstollfeeFreeDate(date))
-                return 0;
-
-            if (TimeBetween(date, (6, 0), (6, 29))) return 9;
-            if (TimeBetween(date, (6, 30), (6, 59))) return 16;
-            if (TimeBetween(date, (7, 0), (7, 59))) return 22;
-            if (TimeBetween(date, (8, 0), (8, 29))) return 16;
-            if (TimeBetween(date, (8, 30), (14, 59))) return 9;
-            if (TimeBetween(date, (15, 00), (15, 29))) return 16;
-            if (TimeBetween(date, (15, 30), (16, 59))) return 22;
-            if (TimeBetween(date, (17, 00), (17, 59))) return 16;
-            if (TimeBetween(date, (18, 00), (18, 29))) return 9;
-
-            else
-
-                return 0;
+            return hourfee.GetHourlyFee(date, vehicle);
         }
 
-        private static bool TimeBetween(DateTime passageTime, (int Hour, int Minute) startTime, (int Hour, int Minute) endTime)
+        private static bool IsDuplicateDate(DateTime[] dates)
         {
-            var now = passageTime.TimeOfDay;
-            var start = new TimeSpan(startTime.Hour, startTime.Minute, 0);
-            var end = new TimeSpan(endTime.Hour, endTime.Minute, 59);
+            DateTime acceptdate = dates[0];
+            return (dates.All(date => date.Year == acceptdate.Year &&
+                                     date.Month == acceptdate.Month &&
+                                     date.Day == acceptdate.Day));
 
-            return (now >= start) && (now <= end);
         }
+
+        //private IEnumerable<DateTime> F_dateSort(IEnumerable<DateTime> dates)
+        //{
+        //    return dates.OrderBy(date => date);
+        //}
+
+
+
+
         // to access token for retrieving the information from  svenskahelgdagar.info website
 
-        private static bool IstollfeeFreeDate(DateTime date)
-        {
-            //check weekend
-            if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday || date.Month == 7) return true;
-            // connecting website thrugh API
-            var client = new HttpClient() { BaseAddress = new Uri("https://svenskahelgdagar.info/v2/") };
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var accessToken_info = GetAccessToken_tollfee(client).Result;
+        //private static bool IstollfeeFreeDate(DateTime date)
+        //{
+        //    //check weekend
+        //    if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday || date.Month == 7) return true;
+        //    // connecting website thrugh API
+        //    var client_v = new HttpClient() { BaseAddress = new Uri("https://svenskahelgdagar.info/v2/") };
+        //    client_v.DefaultRequestHeaders.Accept.Clear();
+        //    client_v.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //    var accessToken_info = GetAccessToken_tollfee(client_v).Result;
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken_info);
-            return IsPublicSunday(date, client).Result || IsPublicSunday(date.AddDays(1), client).Result;
-        }
+        //    client_v.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken_info);
+        //    return IsPublicSunday(date, client_v).Result || IsPublicSunday(date.AddDays(1), client_v).Result;
+        //    static async Task<string> GetAccessToken_tollfee(HttpClient client)
+        //    {
+        //        //get access token cetails 
+        //        var client_Id = "jencyraj919961";
+        //        var client_Secret = "f32872-d91cee-eb697d-4731e4-c14f3b";
 
-        private static async Task<bool> IsPublicSunday(DateTime dateTime, HttpClient httpClient)
-        {
+        //        var postData = new List<KeyValuePair<string, string>>
+        //            {
+        //                new KeyValuePair<string, string>("grant_type", "client_credentials"),
+        //                new KeyValuePair<string, string>("client_id", client_Id),
+        //                new KeyValuePair<string, string>("client_secret", client_Secret)
+        //            };
 
-            var response = await httpClient.GetAsync($"date/{dateTime.ToShortDateString()}");
+        //        var content = new FormUrlEncodedContent(postData);
 
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonString = await response.Content.ReadAsStringAsync();
-                dynamic responseData = JsonConvert.DeserializeObject(jsonString);
-                return responseData?.response is JObject && (bool)responseData.response.public_sunday;
-            }
+        //        var response = await client.PostAsync("access_token", content);
 
-            throw new HttpRequestException(response.StatusCode.ToString());
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            var jsonString = await response.Content.ReadAsStringAsync();
+        //            dynamic responseData = JsonConvert.DeserializeObject(jsonString);
+        //            return responseData?.access_token;
+        //        }
 
-        }
+        //        throw new HttpRequestException(response.StatusCode.ToString());
+        //    }
+        //    static async Task<bool> IsPublicSunday(DateTime dateTime, HttpClient httpClient)
 
-        private static async Task<string> GetAccessToken_tollfee(HttpClient client)
-        {
-            //get access token cetails 
-            var client_Id = "jencyraj919961";
-            var client_Secret = "f32872-d91cee-eb697d-4731e4-c14f3b";
+        //    {
 
-            var postData = new List<KeyValuePair<string, string>>
-                {
-                    new KeyValuePair<string, string>("grant_type", "client_credentials"),
-                    new KeyValuePair<string, string>("client_id", client_Id),
-                    new KeyValuePair<string, string>("client_secret", client_Secret)
-                };
+        //        var response = await httpClient.GetAsync($"date/{dateTime.ToShortDateString()}");
 
-            var content = new FormUrlEncodedContent(postData);
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            var jsonString = await response.Content.ReadAsStringAsync();
+        //            dynamic responseData = JsonConvert.DeserializeObject(jsonString);
+        //            return responseData?.response is JObject && (bool)responseData.response.public_sunday;
+        //        }
 
-            var response = await client.PostAsync("access_token", content);
+        //        throw new HttpRequestException(response.StatusCode.ToString());
 
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonString = await response.Content.ReadAsStringAsync();
-                dynamic responseData = JsonConvert.DeserializeObject(jsonString);
-                return responseData?.access_token;
-            }
-
-            throw new HttpRequestException(response.StatusCode.ToString());
-        }
+        //    }
+        //}
     }
 }

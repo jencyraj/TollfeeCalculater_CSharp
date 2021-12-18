@@ -7,9 +7,24 @@ using System.Threading.Tasks;
 
 namespace TollCalculater.VehicleList
 {
-    public interface CVehicle
+    public class Vehicle
     {
-        string GetVehicleType();
-        bool TollFree();
+        public VehicleType VehicleType { get; }
+
+        public Vehicle(VehicleType vehicle_Type)
+        {
+            VehicleType = vehicle_Type;
+        }
+    }
+
+    public enum VehicleType
+    {
+        Motorbike,
+        Tractor,
+        Emergency,
+        Diplomat,
+        Foreign,
+        Military,
+        Car_private
     }
 }
