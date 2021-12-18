@@ -50,15 +50,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Hourfee\IHourfee.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TollCalculater.cs" />
     <Compile Include="Hourfee\HourFeeSweden.cs" />
+    <Compile Include="Hourfee\IHourfee.cs" />
     <Compile Include="Hourfee\ItollFreeDays.cs" />
     <Compile Include="Hourfee\ItollFreeVehicleType.cs" />
     <Compile Include="Hourfee\tollfreeSweden.cs" />
     <Compile Include="Hourfee\TollfreeVehilceType_Sweden.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TollCalculater.cs" />
     <Compile Include="VehicleList\vehicle.cs" />
   </ItemGroup>
   <ItemGroup>

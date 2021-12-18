@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TollCalculater.VehicleList;
 
+
 namespace TollCalculater.Hourfee
 {
     public class HourFeeSweden : IHourfee
@@ -12,8 +13,16 @@ namespace TollCalculater.Hourfee
     {
         private readonly ItollFreeDays itollFreeDays;
         private readonly ItollFreeVehicleType itollFreeVehicleType;
+        
+        private TollfreeVehilceType_Sweden tollfreeVehilceType_Sweden;
 
-        public int GetHourlyFee(DateTime date, Vehicle vehicle)
+        public HourFeeSweden(ItollFreeDays ITfreeDays, ItollFreeVehicleType ItollFreeVType)
+        {
+            itollFreeDays = ITfreeDays ?? throw new ArgumentNullException(nameof(ITfreeDays));
+            itollFreeVehicleType = ItollFreeVType ?? throw new ArgumentNullException(nameof(ItollFreeVType));
+        }
+
+        public int GetHourlyTollFee(DateTime date, Vehicle vehicle)
         {
             if (itollFreeDays.Istollfree(date) || itollFreeVehicleType.IsTollfree(vehicle.VehicleType)) return 0;
             if (TimeBetween(date, (6, 0), (6, 29))) return 9;
@@ -37,5 +46,7 @@ namespace TollCalculater.Hourfee
 
             return (now >= start) && (now <= end);
         }
+
+        
     }
 }
