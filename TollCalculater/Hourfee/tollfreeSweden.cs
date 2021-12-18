@@ -19,7 +19,7 @@ namespace TollCalculater.Hourfee
         {
             return (date.Month == 1 && date.Day == 1 ||   //Newyear
                     date.Month == 1 && date.Day == 6 ||  //Epiphany day
-                    date.Month == 5 && date.Day == 1 || // May first world workers day
+                    date.Month == 5 && date.Day == 1 || // May first world workers day 
                     date.Month == 6 && date.Day == 6 || // sweden national day
                     date.Month == 12 && date.Day == 24 || // x-mas holidays 24,25,26
                     date.Month == 12 && date.Day == 25 ||
