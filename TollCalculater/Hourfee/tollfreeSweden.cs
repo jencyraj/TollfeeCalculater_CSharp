@@ -9,7 +9,7 @@ namespace TollCalculater.Hourfee
 {
     public class tollfreeSweden : ItollFreeDays
     {
-        public bool IsTollfree(DateTime date)
+        public bool Istollfree(DateTime date)
         {
             return Isweekenddays(date) || IsPublicHolyday(date);
 
@@ -19,9 +19,9 @@ namespace TollCalculater.Hourfee
         {
             return (date.Month == 1 && date.Day == 1 ||   //Newyear
                     date.Month == 1 && date.Day == 6 ||  //Epiphany day
-                    date.Month == 5 && date.Day == 1 || // May first
+                    date.Month == 5 && date.Day == 1 || // May first world workers day
                     date.Month == 6 && date.Day == 6 || // sweden national day
-                    date.Month == 12 && date.Day == 24 || // x-mas holidays
+                    date.Month == 12 && date.Day == 24 || // x-mas holidays 24,25,26
                     date.Month == 12 && date.Day == 25 ||
                     date.Month == 12 && date.Day == 26 ||
                     easter_Holiday(date));
@@ -65,7 +65,7 @@ namespace TollCalculater.Hourfee
 
         private bool Isweekenddays(DateTime date)
         {
-            throw new NotImplementedException();
+            return date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
         }
     }
 }

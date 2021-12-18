@@ -21,8 +21,16 @@ namespace TollCalculater
    * @return - the total toll fee for that day
    */
         private readonly IHourfee ihourfee;
+        private HourFeeSweden hourFeeSweden;
+
         // Maxtollperday 60 SEK
         const int max_tollfee = 60;
+
+        public TollCalculater(IHourfee hourlyFee)
+        {
+            ihourfee = hourlyFee ?? throw new ArgumentNullException(nameof(hourlyFee));
+        }
+
         public  int GetTollFee(Vehicle vehicle, DateTime[] dates)
         {
             if (dates == null || dates.Length == 0)
