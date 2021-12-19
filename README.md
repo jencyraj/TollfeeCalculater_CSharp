@@ -1,4 +1,4 @@
-# TollfeeCalculater_CandidateTest
+# TollfeeCalculator_CandidateTest
 
 
 # Task: 
